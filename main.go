@@ -1,6 +1,7 @@
 package main
 
 import (
+	"MyBlock/models"
 	"fmt"
 )
 
@@ -10,7 +11,7 @@ func init() {
 
 func main() {
 
-	bc := NewBlockchain()
+	bc := models.NewBlockchain()
 
 	bc.AddBlock("Send 1 BTC to Ivan")
 	bc.AddBlock("Send 2 more BTC to Ivan")

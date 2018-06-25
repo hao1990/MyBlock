@@ -1,4 +1,4 @@
-package main
+package models
 
 /*区块链*/
 type Blockchain struct {
