@@ -22,4 +22,5 @@ func main() {
 		fmt.Printf("Hash: %x\n", block.Hash)
 		fmt.Println()
 	}
+
 }
