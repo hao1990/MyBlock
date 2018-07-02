@@ -1,6 +1,9 @@
 package models
 
 import (
+	"bytes"
+	"encoding/gob"
+	"log"
 	"time"
 )
 
@@ -37,4 +40,27 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 /*生成 创世区块*/
 func NewGennesisBlock() *Block {
 	return NewBlock("Gennesis Block", []byte{})
+}
+
+/*序列化*/
+/*把Blockc 序列化编码成字节数组*/
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+	return result.Bytes()
+}
+
+/*把字节数组反序列化成 Block*/
+func DeserializeBlock(by []byte) *Block {
+	var block Block
+	docoder := gob.NewDecoder(bytes.NewReader(by))
+	err := docoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return &block
 }

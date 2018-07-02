@@ -2,8 +2,6 @@ package main
 
 import (
 	"MyBlock/models"
-	"fmt"
-	"strconv"
 )
 
 func init() {
@@ -13,22 +11,26 @@ func init() {
 func main() {
 
 	bc := models.NewBlockchain()
+	defer bc.DB.Close()
 
-	bc.AddBlock("Send 1 BTC to Ivan")
-	bc.AddBlock("Send 2 more BTC to Ivan")
+	cli := models.CLI{bc}
+	cli.Run()
 
-	for _, block := range bc.Blocks {
-		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Printf("Nonce:%d\n", block.Nonce)
-
-		pow := models.NewProofOfWork(block)
-
-		fmt.Println("Pow:", strconv.FormatBool(pow.ValidateHash()))
-
-		fmt.Println()
-	}
+	//bc.AddBlock("Send 1 BTC to Ivan")
+	//bc.AddBlock("Send 2 more BTC to Ivan")
+	//
+	//for _, block := range bc.Blocks {
+	//	fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
+	//	fmt.Printf("Data: %s\n", block.Data)
+	//	fmt.Printf("Hash: %x\n", block.Hash)
+	//	fmt.Printf("Nonce:%d\n", block.Nonce)
+	//
+	//	pow := models.NewProofOfWork(block)
+	//
+	//	fmt.Println("Pow:", strconv.FormatBool(pow.ValidateHash()))
+	//
+	//	fmt.Println()
+	//}
 
 }
 
