@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-//定义常量 挖矿难度
-const targetBits = 24
-
 var (
 	maxNonce = math.MaxInt64
 )
+
+//定义常量 挖矿难度
+const targetBits = 24
 
 /*工作证明*/
 type ProofOfWork struct {
@@ -25,8 +25,9 @@ type ProofOfWork struct {
 
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
-	target.Lsh(target, uint(256-targetBits)) //左移256 - targetBits位
-	fmt.Println("目标:", target)               //6901746346790563787434755862277025452451108972170386555162524223799296
+	target.Lsh(target, uint(256-targetBits)) // 左移(256 - targetBits)位
+	fmt.Println("目标:", target)               // 6901746346790563787434755862277025452451108972170386555162524223799296
+	//fmt.Printf(" %x \n", target)         //10000000000000000000000000000000000000000000000000000000000
 	pow := &ProofOfWork{b, target}
 	return pow
 }
@@ -52,17 +53,17 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var hashInt big.Int //哈希值的整数表示
 	var hash [32]byte
-	nonce := 0
+
+	nonce := 0 //计数器
 
 	startTime := time.Now()
-
 	fmt.Printf("%v Mining the block containing \"%s\"\n", startTime.Format("2006-01-02 15:04:05"), pow.block.Data)
 
 	for nonce < maxNonce {
 		//整备数据
 		data := pow.prepareData(nonce)
 
-		//用SHA-256计算 哈希值
+		//用SHA-256 计算 哈希值
 		hash = sha256.Sum256(data)
 		fmt.Printf("\r%x", hash)
 
@@ -81,6 +82,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
+//验证工作量证明
 func (pow *ProofOfWork) ValidateHash() bool {
 	var hashInt big.Int
 
