@@ -10,9 +10,12 @@ const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
 
 /*
+BoltDB
+是没有数据类型：键和值都是字节数组。
+
 桶 bucket  > blocks
 
-数据库是价值对存储
+数据库是键值对存储
 key:value
 1.
     l:区块链尾端取款的 Hash

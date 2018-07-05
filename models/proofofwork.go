@@ -26,7 +26,7 @@ type ProofOfWork struct {
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits)) //左移256 - targetBits位
-	fmt.Println("目标:", target)               //6901746346790563787434755862277025452451108972170386555162524223799296
+	fmt.Printf("目标: %x \n", target)          //6901746346790563787434755862277025452451108972170386555162524223799296
 	pow := &ProofOfWork{b, target}
 	return pow
 }

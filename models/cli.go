@@ -37,7 +37,7 @@ func (cli *CLI) printChain() {
 		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
 		fmt.Printf("Data: %s\n", block.Data)
 		fmt.Printf("Hash: %x\n", block.Hash)
-
+		fmt.Printf("计数器:%d\n", block.Nonce)
 		pow := NewProofOfWork(block)
 		fmt.Printf("Pow:%s\n", strconv.FormatBool(pow.ValidateHash()))
 		fmt.Println()
@@ -55,7 +55,7 @@ func (cli *CLI) Run() {
 
 	addBlockData := addBlockCmd.String("data", "", "Block data")
 	switch os.Args[1] {
-	case "addBlock":
+	case "addblock":
 		err := addBlockCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
