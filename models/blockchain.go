@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"log"
+	"os"
 )
 
 const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
+
+const genesisCoinbaseData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
 /*区块链*/
 type Blockchain struct {
@@ -79,41 +82,27 @@ func (bci *BlockchainInterator) Next() *Block {
 	bci.currentHash = block.PrevBlockHash
 	return block
 }
-
+func dbExists() bool {
+	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
 func NewBlockchain() *Blockchain {
+	if dbExists() == false {
+		fmt.Println("No existing blockchain found. Create one first.")
+		os.Exit(1)
+	}
+
 	var tip []byte
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		log.Panic(err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
+		bucket := tx.Bucket([]byte(blocksBucket))
+		tip = bucket.Get([]byte("l"))
 
-		if b == nil {
-			fmt.Println("没有发现区块链 》》》 创建新的")
-			//创世区块
-			gennesisBlock := NewGennesisBlock()
-			//用创世区块生成区块链
-			//blockchain := Blockchain{[]*Block{gennesisBlock}}
-
-			b, err := tx.CreateBucket([]byte(blocksBucket))
-			if err != nil {
-				log.Panic(err)
-			}
-			err = b.Put(gennesisBlock.Hash, gennesisBlock.Serialize())
-			if err != nil {
-				log.Panic(err)
-			}
-			err = b.Put([]byte("l"), gennesisBlock.Hash)
-			if err != nil {
-				log.Panic(err)
-			}
-
-			tip = gennesisBlock.Hash
-
-		} else {
-			tip = b.Get([]byte("l"))
-		}
 		return nil
 	})
 	if err != nil {
@@ -123,4 +112,38 @@ func NewBlockchain() *Blockchain {
 	blockchain := Blockchain{tip, db}
 
 	return &blockchain
+}
+
+func CreateBlockchain(addres string) *Blockchain {
+	if dbExists() {
+		fmt.Println("Blockchain already exists.")
+		os.Exit(1)
+	}
+	var tip []byte
+	db, err := bolt.Open(dbFile, 0600, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+	err = db.Update(func(tx *bolt.Tx) error {
+		cbtx := NewCoinbaseTX(addres, genesisCoinbaseData)
+		genesis := NewGennesisBlock(cbtx)
+
+		b, err := tx.CreateBucket([]byte(blocksBucket))
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = b.Put(genesis.Hash, genesis.Serialize())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = b.Put([]byte("l"), genesis.Hash)
+		if err != nil {
+			log.Panic(err)
+		}
+		tip = genesis.Hash
+
+		return nil
+	})
 }

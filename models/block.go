@@ -9,15 +9,17 @@ import (
 
 /*区块*/
 type Block struct {
-	Timestamp     int64  //区块的创建时间
-	Data          []byte //区块中有价值的数据
+	Timestamp    int64          //区块的创建时间
+	Transactions []*Transaction //交易
+	//Data          []byte //区块中有价值的数据
 	PrevBlockHash []byte //上一个区块的散列值
 	Hash          []byte //该区块的散列值
 	Nonce         int    //计数器值
 }
 
-func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+
 	pow := NewProofOfWork(block)
 
 	nonce, hash := pow.Run()
@@ -38,8 +40,8 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 //}
 
 /*生成 创世区块*/
-func NewGennesisBlock() *Block {
-	return NewBlock("Gennesis Block", []byte{})
+func NewGennesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
 /*序列化*/
