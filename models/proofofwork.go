@@ -39,7 +39,7 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.Data,
+			pow.block.HashTransactions(),
 			utils.IntToHex(pow.block.Timestamp),
 			utils.IntToHex(int64(targetBits)),
 			utils.IntToHex(int64(nonce)),
@@ -56,7 +56,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 
 	startTime := time.Now()
 
-	fmt.Printf("%v Mining the block containing \"%s\"\n", startTime.Format("2006-01-02 15:04:05"), pow.block.Data)
+	fmt.Printf("%v Mining the block containing \"\n", startTime.Format("2006-01-02 15:04:05"))
 
 	for nonce < maxNonce {
 		//整备数据
@@ -76,7 +76,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 			nonce++
 		}
 	}
-	fmt.Println("\n用时:", time.Now().Sub(startTime).Seconds(), "秒")
+	fmt.Println("\n用时:", time.Now().Sub(startTime).Seconds(), "秒 计数= ", nonce, "\n")
 
 	return nonce, hash[:]
 }

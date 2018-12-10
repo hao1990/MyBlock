@@ -10,10 +10,10 @@ func init() {
 
 func main() {
 
-	bc := models.NewBlockchain()
-	defer bc.DB.Close()
+	//bc := models.NewBlockchain()
+	//defer bc.DB.Close()
 
-	cli := models.CLI{bc}
+	cli := models.CLI{}
 	cli.Run()
 
 	//bc.AddBlock("Send 1 BTC to Ivan")

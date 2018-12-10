@@ -21,10 +21,11 @@ type TXInput struct {
 }
 
 type TXOutput struct {
-	Value        int //value 存储的 satoshi的数量,一个satoshi = 百万分之一各 比特币
-	ScriptPubKey string
+	Value        int    //value 存储的 satoshi(聪)的数量,一个satoshi = 0.00000001 BTC(比特币里面最小的货币单位)
+	ScriptPubKey string //一个锁定脚本
 }
 
+//创世块交易
 func NewCoinbaseTX(to, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Reward to %s", to)
@@ -33,4 +34,12 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	txout := TXOutput{subsidy, to}
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
 	return &tx
+}
+
+func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
+	return in.ScriptSig == unlockingData
+}
+
+func (out *TXOutput) CanBeUnlockedWith(unlockingData string) bool {
+	return out.ScriptPubKey == unlockingData
 }

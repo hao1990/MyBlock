@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/boltdb/bolt"
 	"log"
@@ -9,7 +10,6 @@ import (
 
 const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
-
 const genesisCoinbaseData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
 /*区块链*/
@@ -19,53 +19,53 @@ type Blockchain struct {
 	DB  *bolt.DB
 }
 
-func (bc *Blockchain) AddBlock(data string) {
-	/*
-		chainLen := len(BC.Blocks)
-		//找到上一个区块
-		prveBlock := BC.Blocks[chainLen-1]
-		//生成新区块
-		newBlock := NewBlock(data, prveBlock.Hash)
-		//将新区块加入区块链的区块数组中
-		BC.Blocks = append(BC.Blocks, newBlock)
-	*/
-	var lastHash []byte
-
-	err := bc.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		lastHash = b.Get([]byte("l"))
-
-		return nil
-	})
-	if err != nil {
-		log.Panic(err)
-	}
-
-	newBlock := NewBlock(data, lastHash)
-	err = bc.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		err := b.Put(newBlock.Hash, newBlock.Serialize())
-		if err != nil {
-			log.Panic(err)
-		}
-		err = b.Put([]byte("l"), newBlock.Hash)
-		if err != nil {
-			log.Panic(err)
-		}
-		bc.tip = newBlock.Hash
-		return nil
-	})
-}
-
-func (bc *Blockchain) Iterator() *BlockchainInterator {
-	bci := &BlockchainInterator{bc.tip, bc.DB}
-	return bci
-}
-
 /*区块迭代器*/
 type BlockchainInterator struct {
 	currentHash []byte
 	db          *bolt.DB
+}
+
+//func (bc *Blockchain) AddBlock(data string) {
+//	/*
+//		chainLen := len(BC.Blocks)
+//		//找到上一个区块
+//		prveBlock := BC.Blocks[chainLen-1]
+//		//生成新区块
+//		newBlock := NewBlock(data, prveBlock.Hash)
+//		//将新区块加入区块链的区块数组中
+//		BC.Blocks = append(BC.Blocks, newBlock)
+//	*/
+//	var lastHash []byte
+//
+//	err := bc.DB.View(func(tx *bolt.Tx) error {
+//		b := tx.Bucket([]byte(blocksBucket))
+//		lastHash = b.Get([]byte("l"))
+//
+//		return nil
+//	})
+//	if err != nil {
+//		log.Panic(err)
+//	}
+//
+//	newBlock := NewBlock(data, lastHash)
+//	err = bc.DB.Update(func(tx *bolt.Tx) error {
+//		b := tx.Bucket([]byte(blocksBucket))
+//		err := b.Put(newBlock.Hash, newBlock.Serialize())
+//		if err != nil {
+//			log.Panic(err)
+//		}
+//		err = b.Put([]byte("l"), newBlock.Hash)
+//		if err != nil {
+//			log.Panic(err)
+//		}
+//		bc.tip = newBlock.Hash
+//		return nil
+//	})
+//}
+
+func (bc *Blockchain) Iterator() *BlockchainInterator {
+	bci := &BlockchainInterator{bc.tip, bc.DB}
+	return bci
 }
 
 func (bci *BlockchainInterator) Next() *Block {
@@ -88,32 +88,28 @@ func dbExists() bool {
 	}
 	return true
 }
-func NewBlockchain() *Blockchain {
-	if dbExists() == false {
-		fmt.Println("No existing blockchain found. Create one first.")
-		os.Exit(1)
+
+func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
+	var unspentTXOs []Transaction
+	spendtTXOs := make(map[string][]int)
+	bci := bc.Iterator()
+	for {
+		block := bci.Next()
+		for _, tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+		Outputs:
+			for outIdx, out := range tx.Vout {
+				if spendtTXOs[txID] != nil {
+
+				}
+			}
+		}
 	}
-
-	var tip []byte
-	db, err := bolt.Open(dbFile, 0600, nil)
-	if err != nil {
-		log.Panic(err)
-	}
-	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
-		tip = bucket.Get([]byte("l"))
-
-		return nil
-	})
-	if err != nil {
-		log.Panic(err)
-	}
-
-	blockchain := Blockchain{tip, db}
-
-	return &blockchain
+	return unspentTXOs
 }
 
+//创建新链的函数
+//
 func CreateBlockchain(addres string) *Blockchain {
 	if dbExists() {
 		fmt.Println("Blockchain already exists.")
@@ -125,7 +121,9 @@ func CreateBlockchain(addres string) *Blockchain {
 		log.Panic(err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
+		//创建 第一笔 交易
 		cbtx := NewCoinbaseTX(addres, genesisCoinbaseData)
+		//创建 创世块
 		genesis := NewGennesisBlock(cbtx)
 
 		b, err := tx.CreateBucket([]byte(blocksBucket))
@@ -146,4 +144,9 @@ func CreateBlockchain(addres string) *Blockchain {
 
 		return nil
 	})
+	if err != nil {
+		log.Panic(err)
+	}
+	bc := Blockchain{tip, db}
+	return &bc
 }
